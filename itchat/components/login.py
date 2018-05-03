@@ -70,7 +70,11 @@ def login(self, enableCmdQR=False, picDir=None, qrCallback=None,
     logger.info('Loading the contact, this may take a little while.')
     self.web_init()
     self.show_mobile_login()
-    self.get_contact(True)
+    try:
+        self.get_contact(True)
+    except Exception as e:
+        logging.error('get_contact failed')
+        logging.error(e)
     if hasattr(loginCallback, '__call__'):
         r = loginCallback()
     else:
@@ -203,19 +207,19 @@ def web_init(self):
     self.storageClass.userName = dic['User']['UserName']
     self.storageClass.nickName = dic['User']['NickName']
     # deal with contact list returned when init
-    contactList = dic.get('ContactList', [])		
-    chatroomList, otherList = [], []		
-    for m in contactList:		
-        if m['Sex'] != 0:		
-            otherList.append(m)		
-        elif '@@' in m['UserName']:		
+    contactList = dic.get('ContactList', [])
+    chatroomList, otherList = [], []
+    for m in contactList:
+        if m['Sex'] != 0:
+            otherList.append(m)
+        elif '@@' in m['UserName']:
             m['MemberList'] = [] # don't let dirty info pollute the list
-            chatroomList.append(m)		
-        elif '@' in m['UserName']:		
-            # mp will be dealt in update_local_friends as well		
-            otherList.append(m)		
+            chatroomList.append(m)
+        elif '@' in m['UserName']:
+            # mp will be dealt in update_local_friends as well
+            otherList.append(m)
     if chatroomList:
-        update_local_chatrooms(self, chatroomList)		
+        update_local_chatrooms(self, chatroomList)
     if otherList:
         update_local_friends(self, otherList)
     return dic
